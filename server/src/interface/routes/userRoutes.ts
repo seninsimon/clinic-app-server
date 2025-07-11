@@ -10,12 +10,17 @@ import { UserInfo } from "../../application/usecases/user/UserInfo";
 import { verifyToken } from "../../infrartucture/middleware/verifyToken";
 import { UpdateUser } from "../../application/usecases/user/UpdateUser";
 import { ChangeUserPassword } from "../../application/usecases/user/ChangePassword";
+import { DepartmentRepoImp } from "../../infrartucture/repositories/DepartmentMongoRepo";
+import { DepartmentDoctors } from "../../application/usecases/user/DepartmentDoctors";
+import { DoctorRepoImp } from "../../infrartucture/repositories/DoctorMongoRepo";
 const   router = express.Router()
 
 //dependency injection 
 
 // 1. Create repository instance
 const userRepo = new UserRepositoryImpl()
+const deptRepo = new DepartmentRepoImp()
+const doctorRepo = new DoctorRepoImp();
 
 
 //database to usecase to controller
@@ -27,6 +32,7 @@ const loginUse = new Login(userRepo);
 const userInfo = new UserInfo(userRepo)
 const updateuser = new UpdateUser(userRepo)
 const changePassword = new ChangeUserPassword(userRepo)
+const departmentDoctors = new DepartmentDoctors(doctorRepo)
 
 // 3. Inject all into the controller
 const usercontroller = new UserController(
@@ -36,7 +42,8 @@ const usercontroller = new UserController(
   loginUse,
   userInfo,
   updateuser,
-  changePassword
+  changePassword,
+  departmentDoctors
 );
 
 
@@ -51,6 +58,7 @@ router.post("/google-login", (req,res)=>usercontroller.googleLogin(req,res) )
 router.get("/me", verifyToken, (req, res) => usercontroller.userInformaion(req, res));
 router.put("/user/update" , verifyToken , (req, res) => usercontroller.updateUser(req, res))
 router.put("/user/change-password" , verifyToken , (req, res) => usercontroller.changepass(req, res))
+router.get("/user/doctors/department/:id", (req, res) => usercontroller.departmentDoctorsHandler(req, res));
 
 
 

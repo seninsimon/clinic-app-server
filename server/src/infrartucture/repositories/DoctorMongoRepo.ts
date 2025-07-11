@@ -44,5 +44,13 @@ export class DoctorRepoImp implements DocotorRepository {
     );
     return !!result;
   }
+
+  async findDoctorsByDepartment(departmentId: string): Promise<Partial<IDoctor>[]> {
+    return await DoctorModel.find({
+      specialisation: departmentId,
+      status: "Approved",
+      isBlocked: false,
+    }).populate("specialisation", "deptName").select("name email phone experience fee additionalInfo profilePicture");
+  }
 }
 

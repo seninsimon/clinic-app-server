@@ -8,6 +8,7 @@ import { sendMail } from "../../application/services/nodeMailerService";
 import { UserInfo } from "../../application/usecases/user/UserInfo";
 import { UpdateUser } from "../../application/usecases/user/UpdateUser";
 import { ChangeUserPassword } from "../../application/usecases/user/ChangePassword";
+import { DepartmentDoctors } from "../../application/usecases/user/DepartmentDoctors";
 
 export class UserController {
   constructor(
@@ -17,7 +18,8 @@ export class UserController {
     private loginuse: Login,
     private userInfo: UserInfo,
     private updateuser: UpdateUser,
-    private changePassword: ChangeUserPassword
+    private changePassword: ChangeUserPassword,
+    private departmentdoctors: DepartmentDoctors
   ) {}
 
   // 1. Signup
@@ -159,11 +161,13 @@ export class UserController {
       const { oldPassword, newPassword } = req.body;
       const userId = (req as any).user?.id;
 
-      const user = await this.changePassword.execute(userId , oldPassword , newPassword)
+      const user = await this.changePassword.execute(
+        userId,
+        oldPassword,
+        newPassword
+      );
 
-      res.status(200).json(user)
-
-      
+      res.status(200).json(user);
     } catch (error) {
       console.log("error in controller change password of user");
       res
@@ -171,4 +175,29 @@ export class UserController {
         .json({ message: "internal server error in changing password" });
     }
   }
+
+  async departmentDoctorsHandler(req: Request, res: Response): Promise<void> {
+    try {
+      const departmentId = req.params.id;
+
+      if (!departmentId) {
+        res.status(400).json({ message: "Department ID is required." });
+        return;
+      }
+
+      const doctors = await this.departmentdoctors.execute(departmentId);
+
+      res.status(200).json({ doctors });
+    } catch (error: any) {
+      console.error("❌ Error in departmentDoctors controller:", error.message);
+      res
+        .status(500)
+        .json({
+          message: "Internal server error fetching doctors by department",
+        });
+    }
+  }
+
+
+  
 }

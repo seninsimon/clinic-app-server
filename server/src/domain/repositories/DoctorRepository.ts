@@ -11,5 +11,6 @@ export interface DocotorRepository{
     updateDoctorStatus(id: string, status: "Approved" | "Rejected"): Promise<void>;
     doctorDetails() : Promise<Partial<IDoctor>[]>
     updateBlockStatus(doctorId: string, isBlocked: boolean): Promise<boolean>;
+    findDoctorsByDepartment(departmentId: string): Promise<Partial<IDoctor>[]>;
 
 }
