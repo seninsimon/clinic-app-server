@@ -7,6 +7,7 @@ import { userRouter } from "./interface/routes/userRoutes";
 import { doctorRouter } from "./interface/routes/doctorRoutes";
 import { adminRouter } from "./interface/routes/adminRoutes";
 import {s3Router} from './interface/routes/s3Routes'
+import { paymentRouter } from "./interface/routes/payment";
 
 dotenv.config();
 const app = express();
@@ -27,6 +28,7 @@ app.use(express.urlencoded({extended : true}));
 app.use("/", userRouter)
 app.use("/", doctorRouter)
 app.use("/", adminRouter)
+app.use("/",paymentRouter)
 
 // s3 routes
 

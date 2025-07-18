@@ -52,5 +52,23 @@ export class DoctorRepoImp implements DocotorRepository {
       isBlocked: false,
     }).populate("specialisation", "deptName").select("name email phone experience fee additionalInfo profilePicture");
   }
+
+  async getDoctorWithDepartment(id: string): Promise<Partial<IDoctor> | null> {
+    const doctor = await DoctorModel.findById(id).populate("specialisation").lean();
+    
+    if (!doctor) return null;
+
+    return {
+      _id: doctor._id,
+      name: doctor.name,
+      email: doctor.email,
+      phone: doctor.phone,
+      experience: doctor.experience,
+      fee: doctor.fee,
+      profilePicture: doctor.profilePicture,
+      additionalInfo: doctor.additionalInfo,
+      specialisation: doctor.specialisation, 
+    };
+  }
 }
 

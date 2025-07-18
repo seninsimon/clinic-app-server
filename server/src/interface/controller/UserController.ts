@@ -9,6 +9,9 @@ import { UserInfo } from "../../application/usecases/user/UserInfo";
 import { UpdateUser } from "../../application/usecases/user/UpdateUser";
 import { ChangeUserPassword } from "../../application/usecases/user/ChangePassword";
 import { DepartmentDoctors } from "../../application/usecases/user/DepartmentDoctors";
+import { DoctorDetails } from "../../application/usecases/user/DoctorDetails";
+import { AvailableSlots } from "../../application/usecases/user/AvailableSlots";
+import { BookAppointment } from "../../application/usecases/user/BookAppointment";
 
 export class UserController {
   constructor(
@@ -19,7 +22,11 @@ export class UserController {
     private userInfo: UserInfo,
     private updateuser: UpdateUser,
     private changePassword: ChangeUserPassword,
-    private departmentdoctors: DepartmentDoctors
+    private departmentdoctors: DepartmentDoctors,
+    private doctordetails : DoctorDetails,
+    private availableSlots: AvailableSlots,
+    private bookAppointment: BookAppointment // ✅ Add this line
+    
   ) {}
 
   // 1. Signup
@@ -199,5 +206,81 @@ export class UserController {
   }
 
 
-  
+
+  async getDoctorDetails(req: Request, res: Response): Promise<void> {
+    try {
+      const doctorId = req.params.id;
+
+      if (!doctorId) {
+        res.status(400).json({ message: "Doctor ID is required" });
+        return;
+      }
+
+      const doctor = await this.doctordetails.execute(doctorId);
+
+      if (!doctor) {
+        res.status(404).json({ message: "Doctor not found" });
+        return;
+      }
+
+      res.status(200).json({ doctor });
+    } catch (error) {
+      console.error("❌ Error fetching doctor details:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+
+    async getDoctorAvailableSlots(req: Request, res: Response) {
+    try {
+      const { doctorId } = req.params;
+      const { date } = req.query;
+
+      if (!doctorId || !date) {
+         res.status(400).json({ message: "doctorId and date are required" });
+         return
+      }
+
+      const slots = await this.availableSlots.execute(doctorId, date as string);
+       res.status(200).json({ slots });
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  async bookAppointmentHandler(req: Request, res: Response) {
+    try {
+      const { doctor, date, start, end, reason } = req.body;
+      const userId = (req as any).user?.id;
+
+      if (!doctor || !date || !start || !end || !userId) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      const appointmentData = {
+        doctor,
+        patient: userId,
+        date,
+        start,
+        end,
+        reason,
+      };
+
+      const appointment = await this.bookAppointment.execute(appointmentData);
+
+      res.status(201).json({
+        message: "Appointment booked successfully",
+        appointment,
+      });
+    } catch (error: any) {
+      console.error("Error booking appointment:", error.message || error);
+      if (error.message === "Slot already booked. Please choose another.") {
+        return res.status(409).json({ message: error.message });
+      }
+
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
 }
+

@@ -12,5 +12,5 @@ export interface DocotorRepository{
     doctorDetails() : Promise<Partial<IDoctor>[]>
     updateBlockStatus(doctorId: string, isBlocked: boolean): Promise<boolean>;
     findDoctorsByDepartment(departmentId: string): Promise<Partial<IDoctor>[]>;
-
+    getDoctorWithDepartment(id: string): Promise<Partial<IDoctor> | null>; 
 }
