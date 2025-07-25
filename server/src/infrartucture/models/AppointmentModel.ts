@@ -11,12 +11,14 @@ const AppointmentSchema = new Schema<IAppointment>(
     reason: { type: String, required: false }, // <-- Add this
     status: {
       type: String,
-      enum: ["booked", "completed", "cancelled"],
+      enum: ["booked", "confirmed", "completed", "cancelled"], // ← updated here
       default: "booked",
     },
   },
   { timestamps: true }
 );
 
-
-export const AppointmentModel = model<IAppointment>("Appointment", AppointmentSchema);
+export const AppointmentModel = model<IAppointment>(
+  "Appointment",
+  AppointmentSchema
+);

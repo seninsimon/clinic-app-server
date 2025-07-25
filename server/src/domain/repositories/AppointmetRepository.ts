@@ -2,6 +2,7 @@
 
 import { IAppointment } from "../entities/Appointment";
 
+
 export interface AppointmentRepository {
 
   book(appointment: IAppointment): Promise<IAppointment>;
@@ -17,4 +18,6 @@ export interface AppointmentRepository {
 
 
   cancelAppointment(appointmentId: string): Promise<boolean>;
+
+
 }

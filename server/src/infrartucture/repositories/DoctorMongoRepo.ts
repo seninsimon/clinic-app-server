@@ -1,5 +1,7 @@
+import { AppointmentWithPatient } from "../../domain/entities/Appointmentwithpatient";
 import { IDoctor } from "../../domain/entities/Doctor";
 import { DocotorRepository } from "../../domain/repositories/DoctorRepository";
+import { AppointmentModel } from "../models/AppointmentModel";
 import { DoctorModel } from "../models/DoctorModel";
 
 export class DoctorRepoImp implements DocotorRepository {
@@ -69,6 +71,36 @@ export class DoctorRepoImp implements DocotorRepository {
       additionalInfo: doctor.additionalInfo,
       specialisation: doctor.specialisation, 
     };
+  }
+
+  async getAppointmentsByDoctorId(
+  doctorId: string
+): Promise<AppointmentWithPatient[]> {
+  const appointments = await AppointmentModel.find({ doctor: doctorId })
+    .populate("patient", "-password -isBlocked -googleIds")
+    .lean();
+
+  const formatted: AppointmentWithPatient[] = appointments.map((appt: any) => ({
+    _id: appt._id.toString(),
+    doctor: appt.doctor.toString(),
+    patientDetails: appt.patient,
+    date: appt.date,
+    start: appt.start,
+    end: appt.end,
+    reason: appt.reason,
+    status: appt.status,
+    createdAt: appt.createdAt,
+  }));
+
+  return formatted;
+}
+
+ async updateAppointmentStatus(
+    appointmentId: string,
+    status: "booked" | "confirmed" | "completed" | "cancelled"
+  ): Promise<boolean> {
+    const result = await AppointmentModel.updateOne({ _id: appointmentId }, { $set: { status } });
+    return result.modifiedCount > 0;
   }
 }
 

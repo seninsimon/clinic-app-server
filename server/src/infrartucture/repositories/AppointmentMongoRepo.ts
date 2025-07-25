@@ -39,12 +39,22 @@ export class AppointmentRepositoryImp implements AppointmentRepository {
     return await AppointmentModel.find({
       doctor: new Types.ObjectId(doctorId),
       date,
-    });
+    }).sort({ start: 1 }); // sorted by time
   }
 
   async getAppointmentsByPatient(patientId: string): Promise<IAppointment[]> {
     return await AppointmentModel.find({
       patient: new Types.ObjectId(patientId),
-    });
+    })
+      .populate("doctor", "name specialization") // optional: populate doctor info
+      .sort({ date: -1, start: -1 }); // latest appointments first
   }
+
+   async getById(appointmentId: string): Promise<IAppointment | null> {
+    return AppointmentModel.findById(appointmentId)
+      .populate("doctor")   // required for doctor.fee
+      .populate("patient"); // required for userId
+  }
+
+  
 }

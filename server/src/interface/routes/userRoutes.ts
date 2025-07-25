@@ -18,6 +18,10 @@ import { SlotRepoImpl } from "../../infrartucture/repositories/SlotMongoRepo";
 import { AppointmentRepositoryImp } from "../../infrartucture/repositories/AppointmentMongoRepo";
 import { AvailableSlots } from "../../application/usecases/user/AvailableSlots";
 import { BookAppointment } from "../../application/usecases/user/BookAppointment";
+import { GetAppointmentsByPatient } from "../../application/usecases/user/AppointmentByPatient";
+import { CancelAppointment } from "../../application/usecases/user/CancelAppointment";
+import { TransactionRepositoryImpl } from "../../infrartucture/repositories/TransactionRepoImp";
+import { WalletRepositoryImpl } from "../../infrartucture/repositories/WalletRepoImp";
 const router = express.Router();
 
 //dependency injection
@@ -28,6 +32,8 @@ const deptRepo = new DepartmentRepoImp();
 const doctorRepo = new DoctorRepoImp();
 const slotRepo = new SlotRepoImpl();
 const appointmentRepo = new AppointmentRepositoryImp();
+const walletRepo = new WalletRepositoryImpl()
+const transactionRepo = new TransactionRepositoryImpl();
 
 //database to usecase to controller
 // 2. Create use case instances
@@ -41,7 +47,13 @@ const changePassword = new ChangeUserPassword(userRepo);
 const departmentDoctors = new DepartmentDoctors(doctorRepo);
 const doctordetails = new DoctorDetails(doctorRepo);
 const availableSlots = new AvailableSlots(slotRepo, appointmentRepo);
-const bookAppointment = new BookAppointment(appointmentRepo);
+const bookAppointment = new BookAppointment(
+  appointmentRepo,
+  walletRepo,
+  transactionRepo,
+);
+const getAppointmentsByPatient = new GetAppointmentsByPatient(appointmentRepo);
+const cancelAppointment = new CancelAppointment(appointmentRepo);
 
 // 3. Inject all into the controller
 const usercontroller = new UserController(
@@ -55,7 +67,9 @@ const usercontroller = new UserController(
   departmentDoctors,
   doctordetails,
   availableSlots,
-  bookAppointment
+  bookAppointment,
+  getAppointmentsByPatient,
+  cancelAppointment
 );
 
 router.post("/signup", (req, res) => usercontroller.signup(req, res));
@@ -85,9 +99,16 @@ router.get("/user/doctor/:doctorId/slots", (req, res) =>
   usercontroller.getDoctorAvailableSlots(req, res)
 );
 
-
 router.post("/appointments/book", verifyToken, (req, res) =>
   usercontroller.bookAppointmentHandler(req, res)
+);
+router.get("/appointments/user", verifyToken, (req, res) =>
+  usercontroller.getAppointmentsByPatient(req, res)
+);
+
+// Cancel appointment by ID
+router.delete("/appointment-cancel/:id", verifyToken, (req, res) =>
+  usercontroller.cancelAppointmentbyuser(req, res)
 );
 
 export { router as userRouter };

@@ -8,6 +8,7 @@ export interface IAppointment {
   start: string; // Format: "HH:mm"
   end: string;   // Format: "HH:mm"
   reason?: string;
-  status?: "booked" | "cancelled"; // Default: "booked"
+  fee: number; // ✅ NEW: required to update wallet/transactions
+  status?: "booked" | "confirmed" | "completed" | "cancelled";
   createdAt?: Date;
 }

@@ -12,6 +12,8 @@ import { SlotRepoImpl } from "../../infrartucture/repositories/SlotMongoRepo";
 import { SetSlot } from "../../application/usecases/doctor/AddSlot";
 import { GetSlotByDay } from "../../application/usecases/doctor/GetSlot";
 import { DeleteSlot } from "../../application/usecases/doctor/DeleteSlot";
+import { PatientAppointment } from "../../application/usecases/doctor/PatientAppointment";
+import { UpdateAppointmentStatus } from "../../application/usecases/doctor/AppointmentApprove";
 
 const router = express.Router();
 
@@ -26,8 +28,11 @@ const registerDoctor = new RegisterDoctor(doctorRepo);
 const findDepartments = new FindDepartment(departmentRepo); // ✅ correct injection
 const loginDoctor = new LoginDoctor(doctorRepo, jwtRepo);
 const addSlot = new SetSlot(slotRepo);
-const getSlot = new GetSlotByDay(slotRepo)
-const deleteSlot = new DeleteSlot(slotRepo)
+const getSlot = new GetSlotByDay(slotRepo);
+const deleteSlot = new DeleteSlot(slotRepo);
+const patientAppointments = new PatientAppointment(doctorRepo);
+const departmentController = new DepartmentController(findDepartments);
+const updateAppointment = new UpdateAppointmentStatus(doctorRepo);
 
 // 3. Controller instances
 const doctorController = new DoctorController(
@@ -35,9 +40,13 @@ const doctorController = new DoctorController(
   loginDoctor,
   addSlot,
   getSlot,
-  deleteSlot
+  deleteSlot,
+  patientAppointments,
+  updateAppointment
 );
-const departmentController = new DepartmentController(findDepartments);
+
+
+
 
 // 4. Routes
 router.post("/doctor-signup", (req, res) =>
@@ -59,6 +68,14 @@ router.get("/doctor/slots/:day", verifyToken, (req, res) =>
 
 router.delete("/doctor/slots/:day", verifyToken, (req, res) =>
   doctorController.deleteSlotsByDay(req, res)
+);
+
+router.get("/doctor/patient-appointments", verifyToken, (req, res) =>
+  doctorController.getAppointmentsWithPatients(req, res)
+);
+
+router.patch("/doctor/patient-appointments/:id", verifyToken, (req, res) =>
+  doctorController.updateAppointmentStatusHandler(req, res)
 );
 
 export { router as doctorRouter };

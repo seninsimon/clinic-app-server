@@ -7,14 +7,18 @@ import { Request, Response } from "express";
 import { ISlot } from "../../domain/entities/Slot";
 import { GetSlotByDay } from "../../application/usecases/doctor/GetSlot";
 import { DeleteSlot } from "../../application/usecases/doctor/DeleteSlot";
+import { PatientAppointment } from "../../application/usecases/doctor/PatientAppointment";
+import { UpdateAppointmentStatus } from "../../application/usecases/doctor/AppointmentApprove";
 
 export class DoctorController {
   constructor(
     private registerDoc: RegisterDoctor,
     private loginDoc: LoginDoctor,
     private addslot: SetSlot,
-     private getSlotByDay: GetSlotByDay,
-     private deleteSlot : DeleteSlot
+    private getSlotByDay: GetSlotByDay,
+    private deleteSlot: DeleteSlot,
+    private patientAppointments: PatientAppointment,
+    private updateAppointmentStatus: UpdateAppointmentStatus
   ) {}
 
   // ✅ Doctor signup
@@ -22,9 +26,13 @@ export class DoctorController {
     try {
       const data: any = req.body;
       const registerDoctor = await this.registerDoc.signupDoctor(data);
-      res.status(201).json({ message: "User registered", data: registerDoctor });
+      res
+        .status(201)
+        .json({ message: "User registered", data: registerDoctor });
     } catch (error) {
-      res.status(500).json({ message: "Internal server error in registering doctor" });
+      res
+        .status(500)
+        .json({ message: "Internal server error in registering doctor" });
     }
   }
 
@@ -53,7 +61,7 @@ export class DoctorController {
   }
 
   // ✅ Add slot (new availability)
-   async setDoctorSlot(req: Request, res: Response): Promise<void> {
+  async setDoctorSlot(req: Request, res: Response): Promise<void> {
     try {
       const doctorId = (req as any).user?.id;
       const { day, slots } = req.body;
@@ -77,7 +85,7 @@ export class DoctorController {
       const { day } = req.params;
 
       const slot = await this.getSlotByDay.execute(doctorId, day);
-      
+
       res.status(200).json({ slots: slot?.slots || [] });
     } catch (err) {
       console.error("Error fetching slot", err);
@@ -86,26 +94,58 @@ export class DoctorController {
   }
 
   async deleteSlotsByDay(req: Request, res: Response): Promise<void> {
-  try {
-    const doctorId = (req as any).user.id;
-    const { day } = req.params;
+    try {
+      const doctorId = (req as any).user.id;
+      const { day } = req.params;
 
-    const deleted = await this.deleteSlot.execute(day, doctorId);
+      const deleted = await this.deleteSlot.execute(day, doctorId);
 
-    if (!deleted) {
-      res.status(404).json({ message: `No slots found for ${day}` });
+      if (!deleted) {
+        res.status(404).json({ message: `No slots found for ${day}` });
+        return;
+      }
+
+      res.status(200).json({ message: `Slots deleted for ${day}` });
+    } catch (err) {
+      console.error("Error deleting slots", err);
+      res.status(500).json({ message: "Failed to delete slots" });
+    }
+  }
+
+  async getAppointmentsWithPatients(req: Request, res: Response) {
+    try {
+      const doctorId = (req as any).user?.id;
+
+      if (!doctorId) {
+        res.status(401).json({ success: false, message: "Unauthorized" });
+        return;
+      }
+
+      const appointments = await this.patientAppointments.execute(doctorId);
+      res.status(200).json({ success: true, appointments });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  async updateAppointmentStatusHandler(req: Request, res: Response) {
+    try {
+      const appointmentId = req.params.id;
+      const { status } = req.body;
+
+      if (!["confirmed", "cancelled"].includes(status)) {
+        res.status(400).json({ message: "Invalid status value." });
+        return;
+      }
+
+      await this.updateAppointmentStatus.execute(appointmentId, status);
+
+      res.status(200).json({ message: `Appointment ${status} successfully.` });
+      return;
+    } catch (err) {
+      console.error("Failed to update appointment status:", err);
+      res.status(500).json({ message: "Internal server error" });
       return;
     }
-
-    res.status(200).json({ message: `Slots deleted for ${day}` });
-  } catch (err) {
-    console.error("Error deleting slots", err);
-    res.status(500).json({ message: "Failed to delete slots" });
   }
-}
-
-
-
-  
-
 }
