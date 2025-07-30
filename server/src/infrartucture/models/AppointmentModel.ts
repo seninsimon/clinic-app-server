@@ -9,6 +9,7 @@ const AppointmentSchema = new Schema<IAppointment>(
     start: { type: String, required: true },
     end: { type: String, required: true },
     reason: { type: String, required: false }, // <-- Add this
+     fee: { type: Number, required: true }, // ✅ ADD THIS LINE
     status: {
       type: String,
       enum: ["booked", "confirmed", "completed", "cancelled"], // ← updated here

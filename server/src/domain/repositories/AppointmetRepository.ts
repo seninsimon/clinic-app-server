@@ -19,5 +19,10 @@ export interface AppointmentRepository {
 
   cancelAppointment(appointmentId: string): Promise<boolean>;
 
+  findById(appointmentId: string): Promise<IAppointment | null>;
+
+  // ✅ NEW - update status of appointment
+  updateStatus(appointmentId: string, status: "cancelled"): Promise<boolean>;
+
 
 }

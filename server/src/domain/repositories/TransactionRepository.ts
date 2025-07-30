@@ -15,5 +15,7 @@ export interface TransactionRepository {
     date: Date;
   }[]>;
 
+  createRefundTransaction(userId: string, appointmentId: string, amount: number): Promise<void>;
+
 
 }

@@ -22,6 +22,7 @@ import { GetAppointmentsByPatient } from "../../application/usecases/user/Appoin
 import { CancelAppointment } from "../../application/usecases/user/CancelAppointment";
 import { TransactionRepositoryImpl } from "../../infrartucture/repositories/TransactionRepoImp";
 import { WalletRepositoryImpl } from "../../infrartucture/repositories/WalletRepoImp";
+import { CancelAppointmentWithRefund } from "../../application/usecases/user/CancelAppintmentWithRefund";
 const router = express.Router();
 
 //dependency injection
@@ -54,6 +55,11 @@ const bookAppointment = new BookAppointment(
 );
 const getAppointmentsByPatient = new GetAppointmentsByPatient(appointmentRepo);
 const cancelAppointment = new CancelAppointment(appointmentRepo);
+const cancelAppointmentWithRefund = new CancelAppointmentWithRefund(
+  appointmentRepo,
+  walletRepo,
+  transactionRepo
+);
 
 // 3. Inject all into the controller
 const usercontroller = new UserController(
@@ -69,7 +75,8 @@ const usercontroller = new UserController(
   availableSlots,
   bookAppointment,
   getAppointmentsByPatient,
-  cancelAppointment
+  cancelAppointment,
+  cancelAppointmentWithRefund
 );
 
 router.post("/signup", (req, res) => usercontroller.signup(req, res));
@@ -108,7 +115,7 @@ router.get("/appointments/user", verifyToken, (req, res) =>
 
 // Cancel appointment by ID
 router.delete("/appointment-cancel/:id", verifyToken, (req, res) =>
-  usercontroller.cancelAppointmentbyuser(req, res)
+  usercontroller.cancelAppointmentRefund(req, res)
 );
 
 export { router as userRouter };

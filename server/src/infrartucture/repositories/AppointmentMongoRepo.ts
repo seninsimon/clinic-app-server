@@ -2,6 +2,7 @@ import { IAppointment } from "../../domain/entities/Appointment";
 import { AppointmentRepository } from "../../domain/repositories/AppointmetRepository";
 import { AppointmentModel } from "../models/AppointmentModel";
 import { Types } from "mongoose";
+import UserWallet from "../models/UserWallet";
 
 export class AppointmentRepositoryImp implements AppointmentRepository {
   constructor() {}
@@ -50,10 +51,19 @@ export class AppointmentRepositoryImp implements AppointmentRepository {
       .sort({ date: -1, start: -1 }); // latest appointments first
   }
 
-   async getById(appointmentId: string): Promise<IAppointment | null> {
-    return AppointmentModel.findById(appointmentId)
-      .populate("doctor")   // required for doctor.fee
-      .populate("patient"); // required for userId
+   async findById(appointmentId: string): Promise<IAppointment | null> {
+    return await AppointmentModel.findById(appointmentId);
+  }
+
+  // ✅ NEW: Update appointment status
+  async updateStatus(appointmentId: string, status: "cancelled"): Promise<boolean> {
+    const result = await AppointmentModel.findByIdAndUpdate(
+      appointmentId,
+      { status: status },
+      { new: true }
+    );
+
+    return !!result;
   }
 
   

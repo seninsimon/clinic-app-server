@@ -15,6 +15,7 @@ export class WalletController {
   async getAdminTransactions(req: Request, res: Response) {
     try {
       const transactions = await this.transactionHistory.execute();
+      console.log("hi :",transactions)
       res.status(200).json({ success: true, transactions });
     } catch (error) {
       res.status(500).json({ success: false, message: "Failed to fetch transactions" });

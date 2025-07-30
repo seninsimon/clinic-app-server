@@ -14,6 +14,7 @@ import { AvailableSlots } from "../../application/usecases/user/AvailableSlots";
 import { BookAppointment } from "../../application/usecases/user/BookAppointment";
 import { GetAppointmentsByPatient } from "../../application/usecases/user/AppointmentByPatient";
 import { CancelAppointment } from "../../application/usecases/user/CancelAppointment";
+import { CancelAppointmentWithRefund } from "../../application/usecases/user/CancelAppintmentWithRefund";
 
 export class UserController {
   constructor(
@@ -29,7 +30,8 @@ export class UserController {
     private availableSlots: AvailableSlots,
     private bookAppointment: BookAppointment,
     private appointmentByPatient: GetAppointmentsByPatient,
-    private cancelAppointment: CancelAppointment
+    private cancelAppointment: CancelAppointment,
+    private cancelAppointmentWithRefund: CancelAppointmentWithRefund
   ) {}
 
   // 1. Signup
@@ -322,4 +324,30 @@ export class UserController {
         .json({ message: error.message || "Failed to cancel appointment" });
     }
   }
+
+
+ async cancelAppointmentRefund(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({ message: "Appointment ID is required" });
+       return
+    }
+
+    const success = await this.cancelAppointmentWithRefund.execute(id);
+
+    if (success) {
+       res.status(200).json({ message: "Appointment cancelled and refunded" });
+       return
+    } else {
+       res.status(404).json({ message: "Appointment not found or already cancelled" });
+       return
+    }
+  } catch (error: any) {
+    console.error("Error in cancelAppointmentRefund:", error);
+     res.status(500).json({ message: error.message || "Server Error" });
+     return
+  }
+}
+
 }
